@@ -53,44 +53,58 @@ def resize_images( source_dirpath, resized_dest_dirpath, cropped_dest_dirpath ):
         for filename in files:
             filepath = os.path.join(root, filename)
             resized_filepath = os.path.join(resized_subdir_path, os.path.splitext(filename)[0] + "." + IMG_FORMAT)
-            cropped_filepath = os.path.join(cropped_subdir_path, os.path.splitext(filename)[0] + "." + IMG_FORMAT)
-            """ print("---")
+            cropped_filepath = os.path.join(cropped_subdir_path, os.path.splitext(filename)[0] + "." + ORIGINAL_IMG_FORMAT)
+            print("---")
             print("filepath: ", filepath)
             print("resized_filepath: ", resized_filepath)
-            print("cropped_filepath: ", cropped_filepath) """
+            print("cropped_filepath: ", cropped_filepath)
 
             # Open the image file
             with Image.open( filepath ) as img:
 
                 imgWidth, imgHeight = img.size
+                imgFormat = img.format
 
                 # set default values
                 new_width = imgWidth
                 new_height = imgHeight
 
                 # If fixed side is set to height or width
-                if RESIZE_FIXED_SIDE == 'height':
-                    new_height = RESIZE_FIXED_SIDE_PX
-                    # Calculate the new width
-                    new_width = int( round( ( imgWidth / imgHeight ) * new_height ) )
-                elif RESIZE_FIXED_SIDE == 'width':
-                    new_width = RESIZE_FIXED_SIDE_PX
-                    # Calculate the new height
-                    new_height = int( round( ( imgHeight / imgWidth ) * new_width ) )
+                if( RESIZE_ENABLED ):
+                    if RESIZE_FIXED_SIDE == 'height':
+                        if imgHeight > RESIZE_FIXED_SIDE_MIN_PX:
+                            new_height = RESIZE_FIXED_SIDE_PX
+                            # Calculate the new width
+                            new_width = int( round( ( imgWidth / imgHeight ) * new_height ) )
+                    elif RESIZE_FIXED_SIDE == 'width':
+                        if imgWidth > RESIZE_FIXED_SIDE_MIN_PX:
+                            new_width = RESIZE_FIXED_SIDE_PX
+                            # Calculate the new height
+                            new_height = int( round( ( imgHeight / imgWidth ) * new_width ) )
 
-                # Resize the image
-                img = img.resize( ( new_width, new_height ) )
+                    # Resize the image
+                    img = img.resize( ( new_width, new_height ) )
+
+                # Crop image
+                if( CROP_ENABLED ):
+                    print("CROP---")
+                    img = img.crop( (LEFT, UPPER, RIGHT, LOWER) )
+                    img.save( cropped_filepath, format = imgFormat )
+                    print("Done cropped_filepath: ", cropped_filepath)
 
                 # Rotate image
                 if( ROTATE_IMAGE ):
                     img = img.rotate( ROTATE_ANGLE, expand=True )
 
-                # Convert to RGB if IMG_FORMAT = "webp"
-                if IMG_FORMAT == 'webp' and img.mode != 'RGB':
-                    img = img.convert('RGB')
-
-                # Save image as webp
-                img.save( resized_filepath, format=IMG_FORMAT )
+                if ( CHANGE_IMG_FORMAT ):
+                    # Convert to RGB if IMG_FORMAT = "webp"
+                    if IMG_FORMAT == 'webp' and img.mode != 'RGB':
+                        img = img.convert('RGB')
+                    # Save image
+                    img.save( resized_filepath, format=IMG_FORMAT )
+                else:
+                    # Save image in original format
+                    img.save( resized_filepath, format = imgFormat )
 
                 print("Done resized_filepath: ", resized_filepath)
 

@@ -3,6 +3,6 @@
 
 source_dir = "source/full/path"
 
-# Destination directories may or may not exists
+# Destination directories may or may not exist
 resize_dest_dir = "resize/output/path"
 crop_dest_dir = "cropped/output/path"
